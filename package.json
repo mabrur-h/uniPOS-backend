@@ -1,0 +1,28 @@
+{
+  "name": "opendata-hackathon",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "UniPOS (startup for open-data hackathon)",
+  "main": "app.js",
+  "scripts": {
+    "start": "pm2 start app.js --name unipos",
+    "dev": "nodemon app.js"
+  },
+  "keywords": [
+    "opendata",
+    "hackathon",
+    "unipos"
+  ],
+  "author": "Pixer Dev",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.0.1",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "joi": "^17.5.0",
+    "jsonwebtoken": "^8.5.1",
+    "pg": "^8.7.1",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "*"
+  }
+}
