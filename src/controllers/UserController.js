@@ -203,36 +203,42 @@ export default class UserController {
     }
     static async UserAddWorker(request, response, next) {
         try {
-            const { user_phone, user_name } = await (
-                await Validations.UserLoginAccountValidation()
-            ).validateAsync(request.body);
+            const { workers, branch } = await request.body
 
-            let userIsExist = await request.db.users.findOne({
-                where: {
-                    user_phone: {
-                        [Op.iLike]: `%${user_phone}%`
+            for (let worker of workers) {
+                let userIsExist = await request.db.users.findOne({
+                    where: {
+                        user_phone: {
+                            [Op.iLike]: `%${worker.user_phone}%`
+                        }
                     }
-                }
-            });
+                });
 
-            if (userIsExist.role = 'OWNER') {
-                await new response.error(405, "This user is owner!")
+
+                if (userIsExist?.user_role === 'OWNER') {
+                    await new response.error(405, "This user is owner!")
+                }
             }
 
-            let newUser = await request.db.users.create({
-                user_name,
-                user_phone,
-                user_role: "WORKER"
-            });
+            for (let worker of workers) {
+                let newUser = await request.db.users.create({
+                    user_name: worker.user_name,
+                    user_phone: worker.user_phone,
+                    user_role: "WORKER"
+                })
 
+                await request.db.workers.create({
+                    user_id: newUser.user_id,
+                    branch_id: branch
+                })
+            }
 
             response.json({
                 ok: true,
-                data: {
-                    user: newUser
-                },
+                message: "Workers created successfully!"
             });
         } catch (error) {
+            console.log(error)
             if (!error.statusCode)
                 error = new response.error(400, "Invalid inputs");
             next(error);

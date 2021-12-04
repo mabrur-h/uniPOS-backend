@@ -14,20 +14,12 @@ export default async function AuthMiddleware(request, response, next) {
             where: {
                 session_id: data.session_id,
             },
+            include: {
+                model: request.db.users
+            }
         });
 
-        const user_agent = request.headers["user-agent"];
-
         if (!session) throw new response.error(403, "Session already expired");
-
-        if (session.dataValues.session_user_agent !== user_agent) {
-            await request.db.sessions.destroy({
-                where: {
-                    session_id: data.session_id,
-                },
-            });
-            throw new response.error(403, "Session expired");
-        }
 
         request.session = session;
 

@@ -93,7 +93,7 @@ export default class Models {
             },
             branch_name: {
                 type: Sequelize.DataTypes.STRING(32),
-                allowNull: false 
+                allowNull: false
             },
             branch_description: {
                 type: Sequelize.DataTypes.STRING(256),
@@ -101,11 +101,16 @@ export default class Models {
             },
             branch_longitude: {
                 type: Sequelize.DataTypes.FLOAT,
-                allowNull: false    
+                allowNull: false
             },
             branch_latitude: {
                 type: Sequelize.DataTypes.FLOAT,
                 allowNull: false
+            },
+            branch_owner: {
+                type: Sequelize.DataTypes.UUID,
+                primaryKey: true,
+                defaultValue: Sequelize.UUIDV4,
             }
         })
     }
@@ -115,6 +120,10 @@ export default class Models {
                 type: Sequelize.DataTypes.UUID,
                 primaryKey: true,
                 defaultValue: Sequelize.UUIDV4,
+            },
+            user_id: {
+                type: Sequelize.DataTypes.UUID,
+                allowNull: true
             }
         })
     }
@@ -156,5 +165,30 @@ export default class Models {
                 allowNull: false
             }
         })
+        await db.workers.hasOne(db.users, {
+            foreignKey: {
+                name: "user_id",
+                allowNull: false
+            }
+        })
+        await db.users.belongsTo(db.workers, {
+            foreignKey: {
+                name: "user_id",
+                allowNull: false
+            }
+        })
+        await db.branches.hasMany(db.workers, {
+            foreignKey: {
+                name: "branch_id",
+                allowNull: false
+            }
+        })
+        await db.workers.belongsTo(db.branches, {
+            foreignKey: {
+                name: "branch_id",
+                allowNull: false
+            }
+        })
+
     }
 }

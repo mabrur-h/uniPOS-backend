@@ -14,20 +14,12 @@ export default async function OwnerMiddleware(request, response, next) {
             where: {
                 session_id: data.session_id,
             },
+            include: {
+                model: request.db.users
+            }
         });
 
-        const user_agent = request.headers["user-agent"];
-
         if (!session) throw new response.error(403, "Session already expired");
-
-        if (session.dataValues.session_user_agent !== user_agent) {
-            await request.db.sessions.destroy({
-                where: {
-                    session_id: data.session_id,
-                },
-            });
-            throw new response.error(403, "Session expired");
-        }
 
         if (session.user.user_role !== 'OWNER') throw new response.error(405, "Permission denied! You are not owner!")
 
@@ -35,6 +27,7 @@ export default async function OwnerMiddleware(request, response, next) {
 
         next();
     } catch (error) {
+        console.log(error)
         if (!error.statusCode)
             error = new response.error(403, "Invalid inputs");
         next(error);
