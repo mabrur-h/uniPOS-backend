@@ -88,4 +88,23 @@ export default class CategoriesController {
             next(error)
         }
     }
+    static async GetProductsByCategory(request, response, next) {
+        try {
+            let { category_id } = await request.params
+
+
+
+            response.status(200).json({
+                ok: true,
+                data: {
+
+                }
+            });
+        } catch (error) {
+            console.log(error)
+            if (!error.statusCode)
+                error = new response.error(400, "Invalid inputs");
+            next(error)
+        }
+    }
 }

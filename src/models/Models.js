@@ -152,12 +152,17 @@ export default class Models {
                 allowNull: false,
             },
             product_price: {
-                type: Sequelize.DataTypes.BIGINT,
+                type: Sequelize.DataTypes.FLOAT,
                 allowNull: false,
             },
             product_barcode: {
                 type: Sequelize.DataTypes.STRING,
                 allowNull: false,
+            },
+            product_count: {
+              type: Sequelize.DataTypes.BIGINT,
+              allowNull: false,
+              defaultValue: 1
             },
             product_type: {
                 type: Sequelize.DataTypes.STRING,
