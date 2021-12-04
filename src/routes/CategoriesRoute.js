@@ -8,7 +8,7 @@ import CategoriesController from "../controllers/CategoriesController.js";
 const CategoriesRoute = Router();
 
 CategoriesRoute.post('/:branch_id/add', OwnerMiddleware, CategoriesController.AddNewCategory)
-CategoriesRoute.get('/:branch_id/add', AuthMiddleware, CategoriesController.GetCategories)
+CategoriesRoute.get('/:branch_id', AuthMiddleware, CategoriesController.GetCategories)
 
 CategoriesRoute.get("/:category_id", AuthMiddleware, BranchesController);
 

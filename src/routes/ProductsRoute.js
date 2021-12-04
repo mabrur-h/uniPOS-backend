@@ -6,7 +6,7 @@ import UserController from "../controllers/UserController.js";
 
 const ProductsRoute = Router();
 
-ProductsRoute.get("/:branch_id/workers", OwnerMiddleware, BranchesController.GetMyWorkers);
+ProductsRoute.get("/:branch_id", AuthMiddleware, BranchesController.GetMyWorkers);
 
 export default {
     path: "/api/products",
