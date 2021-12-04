@@ -1,21 +1,13 @@
 import { ErrorHandler } from "../helpers/handleError.js";
 import {Validations} from "../modules/validations.js";
+import sortByDistance from 'sort-by-distance';
 import pkg from 'sequelize'
 const { Op } = pkg
 
 export default class ProductsController {
     static async AddNewProduct(request, response, next) {
         try {
-            const { products, category_id } = await request.body
-            const {  } = await request.params
-
-            let category = await request.db.categories.findOne({
-                where: {
-                    category_id
-                }
-            })
-
-            if (!category) throw new response.error(404, 'Category not found!')
+            const { products } = await request.body
 
             for (let product of products) {
                 await request.db.products.create({
@@ -24,11 +16,12 @@ export default class ProductsController {
                     product_barcode: product.product_barcode,
                     product_count: product.product_count,
                     product_type: product.product_type,
-                    category_id
+                    category_id: product.category_id,
+                    product_id: product.product_id
                 })
             }
 
-            response.status(200).json({
+            response.status(201).json({
                 ok: true,
                 message: "Products created successfully!"
             });
@@ -103,53 +96,59 @@ export default class ProductsController {
     }
     static async FindNearestProducts(request, response, next) {
         try {
-            const { name } = await request.query
+            const {name, long, lat} = await request.query
 
-            const { product_name, long, lat } = request.body
-            function closestLocation(targetLocation, locationData) {
-                function vectorDistance(dx, dy) {
-                    return Math.sqrt(dx * dx + dy * dy);
+            let products = await request.db.products.findAll({
+                where: {
+                    product_name: {
+                        [Op.iLike]: `%${name}%`
+                    }
+                },
+                attributes: {
+                    exclude: ['product_barcode']
+                },
+                include: {
+                    model: request.db.categories,
+                    include: {
+                        model: request.db.branches,
+                        attributes: {
+                            exclude: ['branch_owner']
+                        }
+                    }
                 }
+            })
 
-                function locationDistance(location1, location2) {
-                    let dx = location1.latitude - location2.latitude,
-                        dy = location1.longitude - location2.longitude;
+            // let opts = {
+            //     yName: 'category.branch.branch_latitude',
+            //     xName: 'category.branch.branch_longitude'
+            // }
+            //
+            // let origin = { longitude: long, latitude: lat }
+            //
+            // let sortedProducts = sortByDistance(origin, products, opts)
 
-                    return vectorDistance(dx, dy);
-                }
+            const distance = (coor1, coor2) => {
+                const x = coor2.x - coor1.category.branch.branch_longitude;
+                const y = coor2.y - coor1.category.branch.branch_latitude;
+                return Math.sqrt((x * x) + (y * y));
+            };
+            const sortByDistance = (coordinates, point) => {
+                const sorter = (a, b) => distance(a, point) - distance(b, point);
+                return coordinates.sort(sorter);
+            };
 
-                return locationData.reduce(function(prev, curr) {
-                    let prevDistance = locationDistance(targetLocation , prev),
-                        currDistance = locationDistance(targetLocation , curr);
-                    return (prevDistance < currDistance) ? prev : curr;
-                });
+            const points = {
+                x: long,
+                y: lat
             }
 
-            let data = {},
-                //Bu yerda brendchlar va brand name lar kelishi kerak
-                targetLocation = {
-                    latitude: long,
-                    longitude: lat
-                },
-
-                closest = closestLocation(targetLocation, data);
-
-            const product = await request.db.products.findAll({
-                where: {
-                    product_name
-                },
-                include: [
-                    {
-                        model: request.db.categories
-                    }
-                ]
-            })
+            let sortedData = sortByDistance(products, points);
 
 
             response.status(200).json({
                 ok: true,
                 data: {
-                    product
+                    products: sortedData
                 }
             });
         } catch (error) {

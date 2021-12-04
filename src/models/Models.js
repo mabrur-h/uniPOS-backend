@@ -243,6 +243,12 @@ export default class Models {
                 allowNull: false
             }
         })
+        await db.categories.belongsTo(db.branches, {
+            foreignKey: {
+                name: "branch_id",
+                allowNull: false
+            }
+        })
         await db.categories.hasMany(db.branches, {
             foreignKey: {
                 name: "branch_id",

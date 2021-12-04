@@ -6,7 +6,7 @@ const { Op } = pkg
 export default class CategoriesController {
     static async AddNewCategory(request, response, next) {
         try {
-            const { categories, branch_id } = await request.body
+            const { categories } = await request.body
 
             let findBranches = await request.db.branches.findAll({
                 where: {
@@ -18,14 +18,11 @@ export default class CategoriesController {
 
             if (!findBranches.length) throw new response.error(404, "Your branches not found!")
 
-            let isExist = findBranches.filter(e => e.branch_id === branch_id)
-
-            if (!isExist.length) throw new response.error(404, 'Your branch not found!')
-
             for (let cat of categories) {
                 await request.db.categories.create({
                     category_name: cat.category_name,
-                    branch_id
+                    branch_id: cat.branch_id,
+                    category_id: cat.category_id
                 })
             }
 

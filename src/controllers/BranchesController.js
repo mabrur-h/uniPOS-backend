@@ -12,7 +12,8 @@ export default class BranchesController {
                     branch_description: branch.branch_description,
                     branch_longitude: branch.branch_longitude,
                     branch_latitude: branch.branch_latitude,
-                    branch_owner: request.owner.user_id
+                    branch_owner: request.owner.user_id,
+                    branch_id: branch.branch_id
                 })
             }
 
