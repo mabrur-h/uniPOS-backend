@@ -6,20 +6,7 @@ const { Op } = pkg
 export default class CategoriesController {
     static async AddNewCategory(request, response, next) {
         try {
-            const { category_name } = await request.body
-
-            let category = await request.db.categories.findOne({
-                where: {
-                    [Op.and]: [
-                        {
-                            category_name
-                        },
-                        {
-                            branch_id: request.params.branch_id
-                        }
-                    ]
-                }
-            })
+            const { categories, branch_id } = await request.body
 
             let findBranches = await request.db.branches.findAll({
                 where: {
@@ -31,23 +18,20 @@ export default class CategoriesController {
 
             if (!findBranches.length) throw new response.error(404, "Your branches not found!")
 
-            let isExist = findBranches.filter(e => e.branch_id === request.params.branch_id)
+            let isExist = findBranches.filter(e => e.branch_id === branch_id)
 
             if (!isExist.length) throw new response.error(404, 'Your branch not found!')
 
-            if (category) throw new response.error(405, "This category already exists!")
-
-            let newCategory = await request.db.categories.create({
-                category_name,
-                branch_id: request.params.branch_id
-            })
+            for (let cat of categories) {
+                await request.db.categories.create({
+                    category_name: cat.category_name,
+                    branch_id
+                })
+            }
 
             response.status(200).json({
                 ok: true,
-                message: "Categories created successfully!",
-                data: {
-                    category: newCategory
-                }
+                message: "Categories created successfully!"
             });
         } catch (error) {
             console.log(error)
@@ -92,12 +76,27 @@ export default class CategoriesController {
         try {
             let { category_id } = await request.params
 
+            let category = await request.db.categories.findOne({
+                where: {
+                    category_id
+                }
+            })
 
+            if (!category) throw new response.error(404, "Category not found!")
+
+            let products = await request.db.products.findAll({
+                where: {
+                    category_id
+                },
+                include: {
+                    model: request.db.categories
+                }
+            })
 
             response.status(200).json({
                 ok: true,
                 data: {
-
+                    products
                 }
             });
         } catch (error) {

@@ -6,8 +6,8 @@ const { Op } = pkg
 export default class ProductsController {
     static async AddNewProduct(request, response, next) {
         try {
-            const { product_name, product_price, product_barcode, product_count, product_type } = await request.body
-            const { category_id } = await request.params
+            const { products, category_id } = await request.body
+            const {  } = await request.params
 
             let category = await request.db.categories.findOne({
                 where: {
@@ -17,21 +17,20 @@ export default class ProductsController {
 
             if (!category) throw new response.error(404, 'Category not found!')
 
-            let product = await request.db.products.create({
-                product_name,
-                product_price,
-                product_barcode,
-                product_count,
-                product_type,
-                category_id
-            })
+            for (let product of products) {
+                await request.db.products.create({
+                    product_name: product.product_name,
+                    product_price: product.product_price,
+                    product_barcode: product.product_barcode,
+                    product_count: product.product_count,
+                    product_type: product.product_type,
+                    category_id
+                })
+            }
 
             response.status(200).json({
                 ok: true,
-                message: "Product created successfully!",
-                data: {
-                    product
-                }
+                message: "Products created successfully!"
             });
         } catch (error) {
             console.log(error)
@@ -93,6 +92,64 @@ export default class ProductsController {
                 ok: true,
                 data: {
                     products: categories
+                }
+            });
+        } catch (error) {
+            console.log(error)
+            if (!error.statusCode)
+                error = new response.error(400, "Invalid inputs");
+            next(error)
+        }
+    }
+    static async FindNearestProducts(request, response, next) {
+        try {
+            const { name } = await request.query
+
+            const { product_name, long, lat } = request.body
+            function closestLocation(targetLocation, locationData) {
+                function vectorDistance(dx, dy) {
+                    return Math.sqrt(dx * dx + dy * dy);
+                }
+
+                function locationDistance(location1, location2) {
+                    let dx = location1.latitude - location2.latitude,
+                        dy = location1.longitude - location2.longitude;
+
+                    return vectorDistance(dx, dy);
+                }
+
+                return locationData.reduce(function(prev, curr) {
+                    let prevDistance = locationDistance(targetLocation , prev),
+                        currDistance = locationDistance(targetLocation , curr);
+                    return (prevDistance < currDistance) ? prev : curr;
+                });
+            }
+
+            let data = {},
+                //Bu yerda brendchlar va brand name lar kelishi kerak
+                targetLocation = {
+                    latitude: long,
+                    longitude: lat
+                },
+
+                closest = closestLocation(targetLocation, data);
+
+            const product = await request.db.products.findAll({
+                where: {
+                    product_name
+                },
+                include: [
+                    {
+                        model: request.db.categories
+                    }
+                ]
+            })
+
+
+            response.status(200).json({
+                ok: true,
+                data: {
+                    product
                 }
             });
         } catch (error) {

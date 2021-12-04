@@ -167,6 +167,11 @@ export default class Models {
             product_type: {
                 type: Sequelize.DataTypes.STRING,
                 allowNull: false,
+            },
+            product_share: {
+                type: Sequelize.DataTypes.BOOLEAN,
+                allowNull: false,
+                defaultValue: true
             }
         })
     }

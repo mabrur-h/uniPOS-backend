@@ -5,7 +5,9 @@ import ProductsController from "../controllers/ProductsController.js";
 
 const ProductsRoute = Router();
 
-ProductsRoute.post('/:category_id/add', OwnerMiddleware, ProductsController.AddNewProduct)
+ProductsRoute.post('/add', OwnerMiddleware, ProductsController.AddNewProduct)
+
+ProductsRoute.get('/search', ProductsController.FindNearestProducts)
 
 ProductsRoute.get('/:product_id', AuthMiddleware, ProductsController.GetProductById)
 ProductsRoute.get('/branch/:branch_id', AuthMiddleware, ProductsController.GetProductsByBranch)
