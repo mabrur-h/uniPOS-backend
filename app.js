@@ -7,13 +7,13 @@ import Path from "path";
 import { postgres } from "./src/modules/pg.js";
 import config from "./config.js";
 
-// Get enviroment variables
+// Get environment variables
 DotEnv.config({
     path: Path.join(Path.resolve(), ".env"),
 });
 
 // Declare variables
-const PORT = config.PORT || 5050;
+const PORT = config.PORT || 4040;
 
 // Server function
 async function server() {
@@ -45,4 +45,4 @@ async function server() {
     });
 }
 
-server();
+await server();

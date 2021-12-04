@@ -1,5 +1,5 @@
 import JWT from "jsonwebtoken";
-import config from "../config.js";
+import config from "../../config.js";
 
 export function signJwtToken(data) {
     return JWT.sign(data, config.SECRET_WORD);

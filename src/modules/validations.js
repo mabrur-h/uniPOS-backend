@@ -2,41 +2,36 @@ import Joi from "joi";
 
 export class Validations {
     static async UserCreateAccountValidation() {
-        return await Joi.object({
-            name: Joi.string()
-                .alphanum()
+        return Joi.object({
+            user_name: Joi.string()
                 .required()
                 .error(new Error("Name is invalid"))
-                .min(4)
+                .min(2)
                 .max(64),
-            password: Joi.string()
+            user_phone: Joi.string()
+                .error(Error("Phone number is invalid"))
+                .pattern(/^998[389][012345789][0-9]{7}$/),
+            brand_name: Joi.string()
                 .required()
-                .min(4)
-                .max(64)
-                .error(new Error("Password is invalid")),
-            username: Joi.string()
-                .required()
-                .min(5)
-                .lowercase()
-                .max(20)
-                .error(new Error("Invalid username"))
-                .pattern(/^[a-zA-Z]{5,}\d*$/i),
+                .error(new Error("Name is invalid"))
+                .min(2)
+                .max(64),
         });
     }
     static async UserLoginAccountValidation() {
-        return await Joi.object({
-            password: Joi.string()
-                .required()
-                .min(4)
-                .max(64)
-                .error(new Error("Password is invalid")),
-            username: Joi.string()
-                .required()
-                .min(5)
-                .lowercase()
-                .max(20)
-                .error(new Error("Invalid username"))
-                .pattern(/^[a-zA-Z]{5,}\d*$/i),
+        return Joi.object({
+            user_phone: Joi.string()
+                .error(Error("Phone number is invalid"))
+                .pattern(/^998[389][012345789][0-9]{7}$/),
         });
+    }
+    static async UserValidateCodeValidation() {
+        return Joi.object({
+            code: Joi.number()
+                .required()
+                .min(10000)
+                .max(99999)
+                .error(Error("Invalid code!"))
+        })
     }
 }

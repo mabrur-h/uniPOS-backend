@@ -4,12 +4,13 @@ import AuthMiddleware from "../middlewares/AuthMiddleware.js";
 
 const UserRouter = Router();
 
-UserRouter.post("/account", UserController.UserCreateAccount);
+UserRouter.post("/signup", UserController.UserCreateAccount);
 UserRouter.post("/login", UserController.UserLoginAccount);
+UserRouter.post("/validate", UserController.UserValidateCode);
 
-UserRouter.get("/me", AuthMiddleware, UserController.UserGetMeAccount);
+UserRouter.get("/profile", AuthMiddleware, UserController.UserGetMyAccount);
 
 export default {
-    path: "/users",
+    path: "/api/users",
     router: UserRouter,
 };

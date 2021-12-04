@@ -1,9 +1,10 @@
 import pkg from "sequelize";
 import { Sequelize } from "sequelize";
 import Models from "../models/Models.js";
+import config from "../../config.js";
 
 export async function postgres() {
-	const sequelize = new Sequelize(process.env.DB_STRING, {
+	const sequelize = new Sequelize(config.DB_STRING, {
 		logging: false,
 		define: {
 			freezeTableName: true,
@@ -14,6 +15,8 @@ export async function postgres() {
 		let db = {};
 		db.users = await Models.UserModel(sequelize, Sequelize);
 		db.sessions = await Models.SessionModel(sequelize, Sequelize);
+		db.bans = await Models.BanModel(sequelize, Sequelize);
+		db.attempts = await Models.AttemptsModel(sequelize, Sequelize);
 
 		await Models.Relations(db);
 

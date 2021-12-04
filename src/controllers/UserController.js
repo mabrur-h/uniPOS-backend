@@ -1,5 +1,7 @@
 import pkg from "sequelize";
 const { Op } = pkg;
+import RN from 'random-number';
+import { v4 as uuidv4 } from 'uuid'
 import { compareHash, createNewHash } from "../modules/bcrypt.js";
 import { signJwtToken } from "../modules/jsonwebtoken.js";
 import { Validations } from "../modules/validations.js";
@@ -7,28 +9,127 @@ import { Validations } from "../modules/validations.js";
 export default class UserController {
     static async UserCreateAccount(request, response, next) {
         try {
-            const { name, username, password } = await (
+            const { user_name, user_phone, brand_name } = await (
                 await Validations.UserCreateAccountValidation()
             ).validateAsync(request.body);
 
-            const user = await request.db.users.findOne({
+            let userIsExist = await request.db.users.findOne({
                 where: {
-                    user_username: username,
-                },
+                    user_phone: {
+                        [Op.iLike]: `%${user_phone}%`
+                    }
+                }
             });
 
-            if (user) throw new response.error(400, "Username already exists");
+            if (userIsExist) throw new response.error(400, "This phone is already exists");
 
-            await request.db.users.create({
-                user_username: username,
-                user_name: name,
-                user_password: await createNewHash(password),
+            let newUser = await request.db.users.create({
+                user_name,
+                user_phone,
+                brand_name
             });
+
+            let user = await request.db.users.findOne({
+                where: {
+                    user_id: newUser.user_id
+                }
+            })
+
+            const gen = RN.generator({
+                min: 10000,
+                max: 99999,
+                integer: true
+            })
+
+            const genNumber = gen()
+
+            let attempt = await request.db.attempts.create({
+                user_code: genNumber,
+                user_id: user.user_id
+            })
 
             response.status(201).json({
                 ok: true,
-                message: "Successfully created",
+                message: "We`ve sent a sms with a confirmation code to your mobile phone. Please enter the 5-digit code below.",
+                data: {
+                    id: attempt.attempt_id,
+                    code: genNumber,
+                    user
+                }
             });
+        } catch (error) {
+            console.log(error)
+            if (!error.statusCode)
+                error = new response.error(400, "Invalid inputs");
+            next(error);
+        }
+    }
+    static async UserValidateCode(request, response, next) {
+        try {
+            let validationId = request.headers["code-validation-id"]
+
+            if (!validationId) throw new response.error(404, "Invalid validation token");
+
+            const attempt = await request.db.attempts.findOne({
+                where: {
+                    attempt_id: validationId
+                },
+                include: {
+                    model: request.db.users
+                }
+            })
+
+            if (!attempt) throw new response.error(400, "Validation code is not found!");
+
+            const { code } = await (
+                await Validations.UserValidateCodeValidation()
+            ).validateAsync(request.body);
+
+            if (Number(code) !== Number(attempt.user_code)) throw new response.error(404, "Validate code is incorrect!")
+
+            let userAgent = request.headers['user-agent'];
+            let ipAddress = request.headers["x-forwarded-for"] || request.connection.remoteAddress;
+
+            if (!(userAgent && ipAddress)) throw new response.error(400, "Invalid device!")
+
+            const session = await request.db.sessions.create({
+                user_id: attempt.user_id,
+                session_inet: ipAddress,
+                session_user_agent: userAgent
+            });
+
+            const token = await signJwtToken({
+                session_id: session.session_id,
+            });
+
+            await request.db.attempts.destroy({
+                where: {
+                    user_id: attempt.user_id
+                }
+            });
+
+            await request.db.attempts.update({
+                user_attempts: 0
+            }, {
+                where: {
+                    user_id: attempt.user_id
+                }
+            })
+
+            let userData = await request.db.users.findOne({
+                where: {
+                    user_id: attempt.user_id
+                }
+            })
+
+            response.status(201).json({
+                ok: true,
+                message: "Successfully logged in!",
+                data: {
+                    token,
+                    user: userData
+                }
+            })
         } catch (error) {
             if (!error.statusCode)
                 error = new response.error(400, "Invalid inputs");
@@ -37,77 +138,62 @@ export default class UserController {
     }
     static async UserLoginAccount(request, response, next) {
         try {
-            const { username, password } = await (
+            const { user_phone } = await (
                 await Validations.UserLoginAccountValidation()
             ).validateAsync(request.body);
 
             const user = await request.db.users.findOne({
                 where: {
-                    user_username: username,
+                    user_phone: user_phone,
                 },
                 raw: true,
             });
 
             if (!user) throw new response.error(400, "User Not found");
 
-            const isTrust = await compareHash(password, user.user_password);
+            const gen = RN.generator({
+                min: 10000,
+                max: 99999,
+                integer: true
+            })
 
-            if (!isTrust) {
-                throw new response.error(400, "Password incorrect");
-            }
+            const genNumber = gen()
 
-            const user_ip =
-                request.headers["x-forwarded-for"] ||
-                request.socket.remoteAddress;
-            const user_agent = request.headers["user-agent"];
+            let attempt = await request.db.attempts.create({
+                user_code: genNumber,
+                user_id: user.user_id
+            })
 
-            await request.db.sessions.destroy({
-                where: {
-                    [Op.and]: {
-                        user_id: user.user_id,
-                        session_inet: user_ip,
-                        session_user_agent: user_agent,
-                    },
-                },
-            });
-
-            const session = await request.db.sessions.create({
-                user_id: user.user_id,
-                session_inet: user_ip,
-                session_user_agent: user_agent,
-            });
-
-            const access_token = await signJwtToken({
-                session_id: session.dataValues.session_id,
-            });
-
-            response.status(201).json({
+            response.status(200).json({
                 ok: true,
-                message: "Successfully logged in",
+                message: "We`ve sent a sms with a confirmation code to your mobile phone. Please enter the 5-digit code below.",
                 data: {
-                    token: access_token,
-                },
+                    id: attempt.attempt_id,
+                    code: genNumber
+                }
             });
         } catch (error) {
+            console.log(error)
             if (!error.statusCode)
                 error = new response.error(400, "Invalid inputs");
             next(error);
         }
     }
-    static async UserGetMeAccount(request, response, next) {
+    static async UserGetMyAccount(request, response, next) {
         try {
             const user = await request.db.users.findOne({
                 where: {
-                    user_id: request.session.dataValues.user_id,
-                },
-                include: {
-                    model: request.db.sessions,
-                },
+                    user_id: request.session.user_id,
+                }
             });
-            delete user.dataValues.user_password;
+
+            if (!user) throw new response.error(404, "User not found!")
+
             response.json({
                 ok: true,
-                data: user.dataValues,
+                data: {
+                    user
+                },
             });
         } catch (error) {
             if (!error.statusCode)

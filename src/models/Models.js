@@ -9,25 +9,27 @@ export default class Models {
             user_name: {
                 type: Sequelize.DataTypes.STRING(32),
                 allowNull: false,
-                validate: {
-                    isAlpha: true,
-                },
             },
-            user_password: {
-                type: Sequelize.DataTypes.STRING(64),
+            user_phone: {
+                type: Sequelize.DataTypes.STRING(13),
+                is: /^998[389][012345789][0-9]{7}$/,
                 allowNull: false,
+                unique: true
             },
-            user_username: {
-                type: Sequelize.DataTypes.STRING(32),
-                allowNull: false,
-                is: /^[a-zA-Z]{5,}\d*$/i,
-                unique: true,
+            brand_name: {
+              type: Sequelize.DataTypes.STRING(32),
+              allowNull: false
             },
             user_role: {
                 type: Sequelize.DataTypes.ENUM,
-                values: ["superadmin", "admin", "user"],
-                defaultValue: "user",
+                values: ["OWNER", "WORKER", "ADMIN"],
+                defaultValue: "OWNER"
             },
+            user_attempts: {
+                type: Sequelize.DataTypes.SMALLINT,
+                allowNull: false,
+                defaultValue: 0
+            }
         });
     }
     static async SessionModel(sequelize, Sequelize) {
@@ -47,6 +49,42 @@ export default class Models {
             },
         });
     }
+    static async BanModel(sequelize, Sequelize) {
+        return sequelize.define("bans", {
+            ban_id: {
+                type: Sequelize.DataTypes.UUID,
+                primaryKey: true,
+                defaultValue: Sequelize.UUIDV4,
+            },
+            expireDate: {
+                type: Sequelize.DataTypes.DATE,
+                allowNull: false
+            }
+        })
+    };
+    static async AttemptsModel(sequelize, Sequelize) {
+        return sequelize.define("attempts", {
+            attempt_id: {
+                type: Sequelize.DataTypes.UUID,
+                primaryKey: true,
+                defaultValue: Sequelize.UUIDV4,
+            },
+            user_code: {
+                type: Sequelize.DataTypes.STRING(6),
+                allowNull: true
+            },
+            user_attempts: {
+                type: Sequelize.DataTypes.SMALLINT,
+                allowNull: false,
+                defaultValue: 0
+            },
+            is_expired: {
+                type: Sequelize.DataTypes.BOOLEAN,
+                defaultValue: false
+            }
+        })
+    }
+
     static async Relations(db) {
         await db.users.hasMany(db.sessions, {
             foreignKey: {
@@ -60,5 +98,29 @@ export default class Models {
                 allowNull: false,
             },
         });
+        await db.users.hasMany(db.attempts, {
+            foreignKey: {
+                name: "user_id",
+                allowNull: false
+            }
+        });
+        await db.attempts.belongsTo(db.users, {
+            foreignKey: {
+                name: "user_id",
+                allowNull: false
+            }
+        });
+        await db.users.hasMany(db.bans, {
+            foreignKey: {
+                name: "user_id",
+                allowNull: false
+            }
+        });
+        await db.bans.belongsTo(db.users, {
+            foreignKey: {
+                name: "user_id",
+                allowNull: false
+            }
+        })
     }
 }
