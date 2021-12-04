@@ -18,7 +18,7 @@ export default class Models {
             },
             brand_name: {
               type: Sequelize.DataTypes.STRING(32),
-              allowNull: false
+              allowNull: true
             },
             user_role: {
                 type: Sequelize.DataTypes.ENUM,
@@ -61,7 +61,7 @@ export default class Models {
                 allowNull: false
             }
         })
-    };
+    }
     static async AttemptsModel(sequelize, Sequelize) {
         return sequelize.define("attempts", {
             attempt_id: {
@@ -81,6 +81,40 @@ export default class Models {
             is_expired: {
                 type: Sequelize.DataTypes.BOOLEAN,
                 defaultValue: false
+            }
+        })
+    }
+    static async BranchesModel(sequelize, Sequelize) {
+        return sequelize.define('branches', {
+            branch_id: {
+                type: Sequelize.DataTypes.UUID,
+                primaryKey: true,
+                defaultValue: Sequelize.UUIDV4,
+            },
+            branch_name: {
+                type: Sequelize.DataTypes.STRING(32),
+                allowNull: false 
+            },
+            branch_description: {
+                type: Sequelize.DataTypes.STRING(256),
+                allowNull: true
+            },
+            branch_longitude: {
+                type: Sequelize.DataTypes.FLOAT,
+                allowNull: false    
+            },
+            branch_latitude: {
+                type: Sequelize.DataTypes.FLOAT,
+                allowNull: false
+            }
+        })
+    }
+    static async WorkersModel(sequelize, Sequelize) {
+        return sequelize.define('branch_workers', {
+            worker_id: {
+                type: Sequelize.DataTypes.UUID,
+                primaryKey: true,
+                defaultValue: Sequelize.UUIDV4,
             }
         })
     }

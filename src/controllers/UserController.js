@@ -201,4 +201,41 @@ export default class UserController {
             next(error);
         }
     }
+    static async UserAddWorker(request, response, next) {
+        try {
+            const { user_phone, user_name } = await (
+                await Validations.UserLoginAccountValidation()
+            ).validateAsync(request.body);
+
+            let userIsExist = await request.db.users.findOne({
+                where: {
+                    user_phone: {
+                        [Op.iLike]: `%${user_phone}%`
+                    }
+                }
+            });
+
+            if (userIsExist.role = 'OWNER') {
+                await new response.error(405, "This user is owner!")
+            }
+
+            let newUser = await request.db.users.create({
+                user_name,
+                user_phone,
+                user_role: "WORKER"
+            });
+
+
+            response.json({
+                ok: true,
+                data: {
+                    user: newUser
+                },
+            });
+        } catch (error) {
+            if (!error.statusCode)
+                error = new response.error(400, "Invalid inputs");
+            next(error);
+        }
+    }
 }
