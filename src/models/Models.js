@@ -127,6 +127,44 @@ export default class Models {
             }
         })
     }
+    static async CategoriesModel(sequelize, Sequelize) {
+        return sequelize.define('categories', {
+            category_id: {
+                type: Sequelize.DataTypes.UUID,
+                primaryKey: true,
+                defaultValue: Sequelize.UUIDV4,
+            },
+            category_name: {
+                type: Sequelize.DataTypes.STRING(32),
+                allowNull: false,
+            },
+        })
+    }
+    static async ProductsModel(sequelize, Sequelize) {
+        return sequelize.define('products', {
+            product_id: {
+                type: Sequelize.DataTypes.UUID,
+                primaryKey: true,
+                defaultValue: Sequelize.UUIDV4,
+            },
+            product_name: {
+                type: Sequelize.DataTypes.STRING(32),
+                allowNull: false,
+            },
+            product_price: {
+                type: Sequelize.DataTypes.BIGINT,
+                allowNull: false,
+            },
+            product_barcode: {
+                type: Sequelize.DataTypes.STRING,
+                allowNull: false,
+            },
+            product_type: {
+                type: Sequelize.DataTypes.STRING,
+                allowNull: false,
+            }
+        })
+    }
 
     static async Relations(db) {
         await db.users.hasMany(db.sessions, {
@@ -189,6 +227,29 @@ export default class Models {
                 allowNull: false
             }
         })
-
+        await db.branches.hasMany(db.categories, {
+            foreignKey: {
+                name: "branch_id",
+                allowNull: false
+            }
+        })
+        await db.categories.hasMany(db.branches, {
+            foreignKey: {
+                name: "branch_id",
+                allowNull: false
+            }
+        })
+        await db.categories.hasMany(db.products, {
+            foreignKey: {
+                name: "category_id",
+                allowNull: false
+            }
+        })
+        await db.products.belongsTo(db.categories, {
+            foreignKey: {
+                name: "category_id",
+                allowNull: false
+            }
+        })
     }
 }

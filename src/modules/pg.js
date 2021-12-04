@@ -19,6 +19,8 @@ export async function postgres() {
 		db.attempts = await Models.AttemptsModel(sequelize, Sequelize);
 		db.branches = await Models.BranchesModel(sequelize, Sequelize);
 		db.workers = await Models.WorkersModel(sequelize, Sequelize);
+		db.categories = await Models.CategoriesModel(sequelize, Sequelize);
+		db.products = await Models.ProductsModel(sequelize, Sequelize);
 
 		await Models.Relations(db);
 
