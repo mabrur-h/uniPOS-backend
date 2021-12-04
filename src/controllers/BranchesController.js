@@ -58,4 +58,60 @@ export default class BranchesController {
             next(error)
         }
     }
+    static async GetMyWorkers(request, response, next) {
+        try {
+            let { branch_id } = await request.params
+
+            let branch = await request.db.branches.findOne({
+                where: {
+                    branch_id
+                }
+            })
+
+            if (!branch) throw new response.error(404, "Branch not found!")
+
+            let workers = await request.db.workers.findAll({
+                where: {
+                    branch_id
+                },
+                include: {
+                    model: request.db.branches
+                }
+            })
+
+            if (!workers.length) throw new response.error(404, 'Workers not found!')
+
+            let workersData = []
+
+            for (let worker of workers) {
+                let user = await request.db.users.findOne({
+                    where: {
+                        user_id: worker.user_id
+                    }
+                })
+
+                workersData.push({
+                    worker_id: worker.worker_id,
+                    user,
+                    createdAt: worker.createdAt,
+                    updatedAt: worker.updatedAt,
+                    branch_id: worker.branch_id,
+                    branch: worker.branch
+                })
+            }
+
+            response.status(200).json({
+                ok: true,
+                message: "Branches created successfully!",
+                data: {
+                    workers: workersData
+                }
+            });
+        } catch (error) {
+            console.log(error)
+            if (!error.statusCode)
+                error = new response.error(400, "Invalid inputs");
+            next(error)
+        }
+    }
 }

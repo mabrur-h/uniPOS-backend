@@ -9,6 +9,7 @@ const BranchRouter = Router();
 BranchRouter.post("/add", OwnerMiddleware, BranchesController.AddNewBranch);
 BranchRouter.post("/workers/add", OwnerMiddleware, UserController.UserAddWorker);
 BranchRouter.get("/all", OwnerMiddleware, BranchesController.GetMyBranches);
+BranchRouter.get("/:branch_id/workers", OwnerMiddleware, BranchesController.GetMyWorkers);
 
 export default {
     path: "/api/branches",
