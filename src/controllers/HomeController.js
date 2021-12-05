@@ -7,9 +7,10 @@ export default class HomeController {
                 ok: true,
                 appName: "uniPOS",
                 version: "0.0.1",
-                documentation: "/",
+                documentation: "https://documenter.getpostman.com/view/15142300/UVJhDa5f",
             });
         } catch (error) {
+            console.log(error)
             next(error);
         }
     }
