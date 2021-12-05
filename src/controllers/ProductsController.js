@@ -95,9 +95,19 @@ export default class ProductsController {
     }
     static async FindNearestProducts(request, response, next) {
         try {
-            const {name, long, lat} = await request.query
+            const getPagination = (page, size) => {
+                const limit = size ? +size : 20;
+                const offset = page ? page * limit : 0;
 
-            let products = await request.db.products.findAll({
+                return { limit, offset };
+            };
+
+            const {name, long, lat, page, size} = await request.query
+
+            const { limit, offset } = getPagination(page, size);
+
+
+            let products = await request.db.products.findAndCountAll({
                 where: {
                     product_name: {
                         [Op.iLike]: `%${name}%`
@@ -114,7 +124,9 @@ export default class ProductsController {
                             exclude: ['branch_owner']
                         }
                     }
-                }
+                },
+                limit,
+                offset
             })
 
 
@@ -153,9 +165,8 @@ export default class ProductsController {
                 y: lat
             }
 
-            let sortedData = sortByDistance(products, points);
-
-            // console.log(sortedData)
+            let count = products.count
+            let sortedData = sortByDistance(products.rows, points);
 
             sortedData = sortedData.map((el) => {
                 return {
@@ -175,6 +186,7 @@ export default class ProductsController {
             response.status(200).json({
                 ok: true,
                 data: {
+                    products_count: count,
                     products: sortedData
                 }
             });
