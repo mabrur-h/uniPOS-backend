@@ -1,9 +1,20 @@
 # Open Data Challenge 2021
-<h2>Jamoa nomi: UniPOS</h2>
-<h3>Loyiha: Do'konlarni avtomatizatsiyalashtirish servisi</h3>
-<h4>Jamoa a'zolari:</h4>
-<ol>
-    <li><a href="https://github.com/muhammadyunusuz/">Muhammad Yunus</a></li>
-    <li><a href="https://github.com/muhammadyunusuz/">Mabrur</a></li>
-    <li><a href="https://github.com/muhammadyunusuz/">Ilhomjon</a></li>
-</ol>
+
+OpenDataHack uchun tuzilgan dastur
+
+## Githubdagi repozitoriyalarimiz:
+
+-   Client: https://github.com/muhammadyunusuz/unipos_client
+-   Backend: https://github.com/mabrur-h/uniPOS-backend
+-   Telegram bot: https://github.com/IlhomMusayev/UniPOSbot
+
+## Natijalar
+
+-   Youtubeda dastur ishlashidan video:
+    https://www.youtube.com/watch?v=x48RmbiDc3Q&ab_channel=MuhammadYunus
+
+-   Youtubeda UniPOS OpenDataga ulangan bot ishlashi: https://youtu.be/rMUOqUGfYaE
+
+## Prezentatsiya
+
+-   Slides: https://slides.com/d/Y1wUXkI/live#/13
